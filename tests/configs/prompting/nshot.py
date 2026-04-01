@@ -36,7 +36,7 @@ expected_result = (
                 ),
                 "input": "{REPLACE_term_human}: {user_input}",
                 "terms": {"human": "Q", "ai": "A"},
-                "config": {"temperature": 0, "model": "text-davinci-002"},
+                "config": {"temperature": 0, "model": "llama2"},
             },
             "prompt_secret": {
                 "label": "Do Not Tell",
@@ -71,7 +71,7 @@ expected_result = (
             "attack_settings_delimiter": "",
             "attack_settings_escape_length": 5,
             "attack_settings_escape_times": 2,
-            "config_model": "text-davinci-002",
+            "config_model": "llama2",
             "config_temperature": 0,
             "config_top_p": 1,
             "config_frequency_penalty": 0,

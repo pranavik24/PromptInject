@@ -5,7 +5,7 @@ from ._utils import DeepDict, hash_dict
 
 _defaults = {
     "config": {
-        "model": "text-davinci-002",
+        "model": "llama2",
         "temperature": 1,
         "top_p": 1,
         "frequency_penalty": 0,

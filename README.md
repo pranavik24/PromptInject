@@ -23,9 +23,19 @@ Run:
 
     pip install git+https://github.com/agencyenterprise/PromptInject
 
+This fork uses a local Llama 2 runtime instead of the OpenAI API. The preferred path is Ollama:
+
+    brew install ollama
+    ollama serve
+    ollama pull llama2
+
+If Ollama is unavailable on your machine, you can also point PromptInject at a local `llama.cpp` setup by exporting `PROMPTINJECT_LLAMA_CPP_MODEL=/path/to/llama-2.gguf`.
+
 ## Usage
 
-See [notebooks/Example.ipynb](notebooks/Example.ipynb) for an example.
+`run_prompts_api` now targets a local Llama 2 backend. By default it sends prompts to `http://127.0.0.1:11434/api/generate`, and you can override that with `PROMPTINJECT_OLLAMA_URL`. If Ollama is not running and `PROMPTINJECT_LLAMA_CPP_MODEL` is set, PromptInject falls back to `llama.cpp`.
+
+See [notebooks/Example.ipynb](notebooks/Example.ipynb) for a prompt-building example.
 
 ## Cite
 

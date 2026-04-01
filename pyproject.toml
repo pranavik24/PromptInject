@@ -11,7 +11,6 @@ keywords = ["nlp", "ai-safety", "language-models"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-openai = "^0.25.0"
 rapidfuzz = "^2.13.2"
 tqdm = "^4.64.1"
 pandas = "^1.5.1"
