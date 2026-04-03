@@ -1,4 +1,5 @@
 # PromptInject 
+By Pranavi Kondapalli, William Montague, and Elaine Gambos
 
 ## Running the Baseline
 
