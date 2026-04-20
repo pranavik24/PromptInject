@@ -136,6 +136,7 @@ def _prompt_model_api(prompt, use_stop=False):
                 "index": 0,
                 "text": generated_text,
                 "cot_trace":cot_trace,
+                "raw_text": raw,
             }
         ],
         "created": response.get("created_at"),
