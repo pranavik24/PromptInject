@@ -124,7 +124,7 @@ def _prompt_model_api(prompt, use_stop=False):
     think_match = re.search(r"<think>(.*?)</think>", raw, flags=re.DOTALL)
     cot_trace = think_match.group(1).strip() if think_match else ""
 
-    final_match = re.search(r"<final>(.*?)</final>", raw, flags=re.DOTALL)
+    final_match = re.search(r"<final>(.*?)(</final>|$)", raw, flags=re.DOTALL)
     generated_text = final_match.group(1).strip() if final_match else raw
     eval_count = response.get("eval_count", 0)
     prompt_eval_count = response.get("prompt_eval_count", 0)
@@ -214,7 +214,8 @@ def _prompt_llama_cpp(
     cot_trace = think_match.group(1).strip() if think_match else ""
 
     # Remove the think block from final answer
-    generated_text = re.search(r"<final>.*?</final>", "", raw_text, flags=re.DOTALL).strip()
+    final_match = re.search(r"<final>(.*?)(</final>|$)", raw_text, flags=re.DOTALL)
+    generated_text = final_match.group(1).strip() if final_match else raw_text
     completion_tokens = len(generated_text.split())
 
     return {
