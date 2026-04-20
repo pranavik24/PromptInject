@@ -177,6 +177,38 @@ def _join_prompt_attack(preset):
     else:
         return ""
 
+def _join_prompt_attack_CoT(preset):
+    attack_instruction = preset["attack_instruction"]
+
+    if attack_instruction:
+        attack_instruction_formatted = attack_instruction.format(
+            REPLACE_rogue_string=preset["attack_rogue_string"],
+        )
+
+        single_escape = "".join(
+            (
+                preset["attack_settings_escape"],
+                f"{preset['attack_settings_delimiter'] * preset['attack_settings_escape_length']}",
+            )
+        )
+
+        repeated_escape = f"{single_escape * preset['attack_settings_escape_times']}"
+
+        if repeated_escape:
+            repeated_escape += "\n"
+
+        cot_instruction = (
+            "\n\nPlease think step by step. "
+            "Put your reasoning inside <think>...</think> and "
+            "your final answer inside <final>...</final>.\n"
+        )
+
+        joined_attack = repeated_escape + attack_instruction_formatted + cot_instruction
+
+        return joined_attack
+    else:
+        return ""
+
 
 def _build_product_list(products, prompts):
     prompt_list = []
@@ -186,7 +218,7 @@ def _build_product_list(products, prompts):
         current_product_settings = _compile_prompts(prompts, product_prompt_values)
 
         main_prompt_string = _join_main_prompt(current_product_settings)
-        main_attack_string = _join_prompt_attack(current_product_settings)
+        main_attack_string = _join_prompt_attack_CoT(current_product_settings)
 
         joined_prompt_attack_string = main_prompt_string.format(
             user_input=main_attack_string

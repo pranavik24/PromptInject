@@ -3,6 +3,7 @@ import os
 import subprocess
 import time
 from urllib import error, request
+import re
 
 from tqdm import tqdm
 
@@ -23,6 +24,7 @@ def run_prompts_api(built_prompts, quiet=False, dry_run=False):
         else:
             api_result = _prompt_model_api(prompt)
         prompt["result"] = api_result["choices"][0]
+
 
 
 def _get_mocked_api_response():
@@ -71,7 +73,6 @@ def _prompt_model_api(prompt, use_stop=False):
         "model": api_config_model,
         "prompt": api_prompt_string,
         "stream": False,
-        "think": True,
         "options": {
             "temperature": api_config_temperature,
             "top_p": api_config_top_p,
@@ -95,6 +96,11 @@ def _prompt_model_api(prompt, use_stop=False):
     try:
         with request.urlopen(req) as http_response:
             response = json.loads(http_response.read().decode("utf-8"))
+
+    except error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Ollama HTTP {exc.code}: {body}") from exc
+
     except error.URLError as exc:
         if LLAMA_CPP_MODEL_PATH:
             return _prompt_llama_cpp(
@@ -113,8 +119,13 @@ def _prompt_model_api(prompt, use_stop=False):
             "`llama-cli` is installed."
         ) from exc
 
-    generated_text = response.get("response", "")
-    cot_trace = response.get("thinking", "")
+    raw = response.get("response", "")
+
+    think_match = re.search(r"<think>(.*?)</think>", raw, flags=re.DOTALL)
+    cot_trace = think_match.group(1).strip() if think_match else ""
+
+    final_match = re.search(r"<final>(.*?)</final>", raw, flags=re.DOTALL)
+    generated_text = final_match.group(1).strip() if final_match else raw
     eval_count = response.get("eval_count", 0)
     prompt_eval_count = response.get("prompt_eval_count", 0)
 
@@ -194,8 +205,15 @@ def _prompt_llama_cpp(
     except subprocess.CalledProcessError as exc:
         raise RuntimeError(exc.stderr.strip() or exc.stdout.strip()) from exc
 
-    generated_text = completed.stdout.strip()
-    cot_trace = response.get("thinking", "")
+    
+    raw_text = completed.stdout.strip()
+
+    # Extract CoT if the model outputs <think>...</think>
+    think_match = re.search(r"<think>(.*?)</think>", raw_text, flags=re.DOTALL)
+    cot_trace = think_match.group(1).strip() if think_match else ""
+
+    # Remove the think block from final answer
+    generated_text = re.sub(r"<think>.*?</think>", "", raw_text, flags=re.DOTALL).strip()
     completion_tokens = len(generated_text.split())
 
     return {
@@ -204,6 +222,7 @@ def _prompt_llama_cpp(
                 "finish_reason": "stop",
                 "index": 0,
                 "text": generated_text,
+                "cot_trace": cot_trace,
                 
             }
         ],
