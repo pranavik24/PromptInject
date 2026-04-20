@@ -121,11 +121,21 @@ def _prompt_model_api(prompt, use_stop=False):
 
     raw = response.get("response", "")
 
-    think_match = re.search(r"<think>(.*?)</think>", raw, flags=re.DOTALL)
+    # think_match = re.search(r"<think>(.*?)</think>", raw, flags=re.DOTALL)
+    # cot_trace = think_match.group(1).strip() if think_match else ""
+
+    # extract think (robust)
+    think_match = re.search(r"<think>(.*?)(</think>|$)", raw, flags=re.DOTALL)
     cot_trace = think_match.group(1).strip() if think_match else ""
 
+    # extract final (robust)
     final_match = re.search(r"<final>(.*?)(</final>|$)", raw, flags=re.DOTALL)
-    generated_text = final_match.group(1).strip() if final_match else raw
+
+    if final_match:
+        generated_text = final_match.group(1).strip()
+    else:
+        # remove all <think> blocks from raw
+        generated_text = re.sub(r"<think>.*?(</think>|$)", "", raw, flags=re.DOTALL).strip()
     eval_count = response.get("eval_count", 0)
     prompt_eval_count = response.get("prompt_eval_count", 0)
 
@@ -209,13 +219,22 @@ def _prompt_llama_cpp(
     
     raw_text = completed.stdout.strip()
 
-    # Extract CoT if the model outputs <think>...</think>
-    think_match = re.search(r"<think>(.*?)</think>", raw_text, flags=re.DOTALL)
+    # # Extract CoT if the model outputs <think>...</think>
+    # think_match = re.search(r"<think>(.*?)</think>", raw_text, flags=re.DOTALL)
+    # cot_trace = think_match.group(1).strip() if think_match else ""
+
+    # extract think (robust)
+    think_match = re.search(r"<think>(.*?)(</think>|$)", raw, flags=re.DOTALL)
     cot_trace = think_match.group(1).strip() if think_match else ""
 
-    # Remove the think block from final answer
-    final_match = re.search(r"<final>(.*?)(</final>|$)", raw_text, flags=re.DOTALL)
-    generated_text = final_match.group(1).strip() if final_match else raw_text
+    # extract final (robust)
+    final_match = re.search(r"<final>(.*?)(</final>|$)", raw, flags=re.DOTALL)
+
+    if final_match:
+        generated_text = final_match.group(1).strip()
+    else:
+        # remove all <think> blocks from raw
+        generated_text = re.sub(r"<think>.*?(</think>|$)", "", raw, flags=re.DOTALL).strip()
     completion_tokens = len(generated_text.split())
 
     return {
