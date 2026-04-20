@@ -213,7 +213,7 @@ def _prompt_llama_cpp(
     cot_trace = think_match.group(1).strip() if think_match else ""
 
     # Remove the think block from final answer
-    generated_text = re.sub(r"<think>.*?</think>", "", raw_text, flags=re.DOTALL).strip()
+    generated_text = re.search(r"<final>.*?</final>", "", raw_text, flags=re.DOTALL).strip()
     completion_tokens = len(generated_text.split())
 
     return {
@@ -222,6 +222,7 @@ def _prompt_llama_cpp(
                 "finish_reason": "stop",
                 "index": 0,
                 "text": generated_text,
+                "raw_text": raw_text, 
                 "cot_trace": cot_trace,
                 
             }
