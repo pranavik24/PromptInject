@@ -71,6 +71,7 @@ def _prompt_model_api(prompt, use_stop=False):
         "model": api_config_model,
         "prompt": api_prompt_string,
         "stream": False,
+        "think": True,
         "options": {
             "temperature": api_config_temperature,
             "top_p": api_config_top_p,
@@ -113,6 +114,7 @@ def _prompt_model_api(prompt, use_stop=False):
         ) from exc
 
     generated_text = response.get("response", "")
+    cot_trace = response.get("thinking", "")
     eval_count = response.get("eval_count", 0)
     prompt_eval_count = response.get("prompt_eval_count", 0)
 
@@ -122,6 +124,7 @@ def _prompt_model_api(prompt, use_stop=False):
                 "finish_reason": response.get("done_reason", "stop"),
                 "index": 0,
                 "text": generated_text,
+                "cot_trace":cot_trace,
             }
         ],
         "created": response.get("created_at"),
@@ -192,6 +195,7 @@ def _prompt_llama_cpp(
         raise RuntimeError(exc.stderr.strip() or exc.stdout.strip()) from exc
 
     generated_text = completed.stdout.strip()
+    cot_trace = response.get("thinking", "")
     completion_tokens = len(generated_text.split())
 
     return {
@@ -200,6 +204,7 @@ def _prompt_llama_cpp(
                 "finish_reason": "stop",
                 "index": 0,
                 "text": generated_text,
+                
             }
         ],
         "created": int(time.time()),
