@@ -233,6 +233,29 @@ def _build_product_list(products, prompts):
         )
     return prompt_list
 
+def _build_product_list_clean(products, prompts):
+    prompt_list = []
+    for current_products in products:
+        product_prompt_values = _merge_current_products(current_products)
+
+        current_product_settings = _compile_prompts(prompts, product_prompt_values)
+
+        main_prompt_string = _join_main_prompt(current_product_settings)
+        main_attack_string = _join_prompt_attack_CoT(current_product_settings)
+
+        joined_prompt_attack_string = main_prompt_string.format(
+            user_input=main_attack_string
+        )
+
+        prompt_list.append(
+            {
+                "hash": hash_dict(current_product_settings),
+                "settings": current_product_settings,
+                "prompt": main_prompt_string,
+            },
+        )
+    return prompt_list
+
 
 def _product_from_iterables(prompt_dicts):
     tuple_list = []
