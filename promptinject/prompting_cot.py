@@ -334,6 +334,6 @@ def build_prompts(preset):
 
     product_list = _product_from_iterables(merged_prompt_dicts)
 
-    built_products = _build_product_list(product_list, merged_prompt_dicts)
+    built_products = _build_product_list_clean(product_list, merged_prompt_dicts)
 
     return built_products
